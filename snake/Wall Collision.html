@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Exercise 5 - Wall Collision</title>
+  <style>
+    body { margin: 0; overflow: hidden; background: #07111f; }
+    #message {
+      position: fixed;
+      inset: 0;
+      display: none;
+      place-items: center;
+      color: white;
+      font-family: Arial;
+      font-size: 40px;
+      background: rgba(0,0,0,0.6);
+    }
+    #message.show { display: grid; }
+  </style>
+</head>
+<body>
+<div id="message">Game Over — Press R</div>
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.164.1/build/three.module.js"
+  }
+}
+</script>
+
+<script type="module">
+import * as THREE from "three";
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x07111f);
+
+const camera = new THREE.PerspectiveCamera(55, innerWidth / innerHeight, 0.1, 1000);
+camera.position.set(10, 12, 15);
+camera.lookAt(0, 0, 0);
+
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setSize(innerWidth, innerHeight);
+document.body.appendChild(renderer.domElement);
+
+scene.add(new THREE.AmbientLight(0xffffff, 0.8));
+
+const BOARD_SIZE = 15;
+const limit = Math.floor(BOARD_SIZE / 2);
+
+const board = new THREE.Mesh(
+  new THREE.BoxGeometry(BOARD_SIZE, 0.3, BOARD_SIZE),
+  new THREE.MeshStandardMaterial({ color: 0x12233a })
+);
+board.position.y = -0.2;
+scene.add(board);
+
+const cube = new THREE.Mesh(
+  new THREE.BoxGeometry(0.85, 0.85, 0.85),
+  new THREE.MeshStandardMaterial({ color: 0x33ff99 })
+);
+scene.add(cube);
+
+let position = { x: 0, z: 0 };
+let direction = { x: 1, z: 0 };
+let gameOver = false;
+let lastMoveTime = 0;
+
+const message = document.getElementById("message");
+
+function reset() {
+  position = { x: 0, z: 0 };
+  direction = { x: 1, z: 0 };
+  gameOver = false;
+  message.classList.remove("show");
+  cube.position.set(0, 0.45, 0);
+}
+
+function hitWall(pos) {
+  return pos.x < -limit || pos.x > limit || pos.z < -limit || pos.z > limit;
+}
+
+function moveCube() {
+  if (gameOver) return;
+
+  const nextPosition = {
+    x: position.x + direction.x,
+    z: position.z + direction.z
+  };
+
+  if (hitWall(nextPosition)) {
+    gameOver = true;
+    message.classList.add("show");
+    return;
+  }
+
+  position = nextPosition;
+  cube.position.set(position.x, 0.45, position.z);
+}
+
+window.addEventListener("keydown", event => {
+  const key = event.key.toLowerCase();
+
+  if (key === "r") reset();
+
+  if (key === "arrowup" || key === "w") direction = { x: 0, z: -1 };
+  if (key === "arrowdown" || key === "s") direction = { x: 0, z: 1 };
+  if (key === "arrowleft" || key === "a") direction = { x: -1, z: 0 };
+  if (key === "arrowright" || key === "d") direction = { x: 1, z: 0 };
+});
+
+function animate(time) {
+  requestAnimationFrame(animate);
+
+  if (time - lastMoveTime > 200) {
+    moveCube();
+    lastMoveTime = time;
+  }
+
+  renderer.render(scene, camera);
+}
+
+reset();
+animate(0);
+</script>
+</body>
+</html>

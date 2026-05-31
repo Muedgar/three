@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Exercise 3 - Keyboard Direction</title>
+  <style>
+    body {
+      background: #07111f;
+      color: white;
+      font-family: Arial;
+      padding: 40px;
+    }
+
+    #box {
+      padding: 20px;
+      border: 1px solid white;
+      border-radius: 12px;
+      width: 300px;
+    }
+  </style>
+</head>
+<body>
+  <div id="box">
+    <h1>Direction</h1>
+    <p>Use Arrow Keys or WASD</p>
+    <h2 id="output">x: 1, z: 0</h2>
+  </div>
+
+<script>
+let direction = { x: 1, z: 0 };
+
+const output = document.getElementById("output");
+
+window.addEventListener("keydown", event => {
+  const key = event.key.toLowerCase();
+
+  if (key === "arrowup" || key === "w") {
+    direction = { x: 0, z: -1 };
+  }
+
+  if (key === "arrowdown" || key === "s") {
+    direction = { x: 0, z: 1 };
+  }
+
+  if (key === "arrowleft" || key === "a") {
+    direction = { x: -1, z: 0 };
+  }
+
+  if (key === "arrowright" || key === "d") {
+    direction = { x: 1, z: 0 };
+  }
+
+  output.textContent = `x: ${direction.x}, z: ${direction.z}`;
+});
+</script>
+</body>
+</html>

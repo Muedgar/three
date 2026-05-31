@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Exercise 6 - Snake Body</title>
+  <style>
+    body { margin: 0; overflow: hidden; background: #07111f; }
+  </style>
+</head>
+<body>
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.164.1/build/three.module.js"
+  }
+}
+</script>
+
+<script type="module">
+import * as THREE from "three";
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x07111f);
+
+const camera = new THREE.PerspectiveCamera(55, innerWidth / innerHeight, 0.1, 1000);
+camera.position.set(10, 12, 15);
+camera.lookAt(0, 0, 0);
+
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setSize(innerWidth, innerHeight);
+document.body.appendChild(renderer.domElement);
+
+scene.add(new THREE.AmbientLight(0xffffff, 0.8));
+
+let snake = [
+  { x: 0, z: 0 },
+  { x: -1, z: 0 },
+  { x: -2, z: 0 }
+];
+
+let direction = { x: 1, z: 0 };
+let snakeMeshes = [];
+
+const cubeGeometry = new THREE.BoxGeometry(0.85, 0.85, 0.85);
+const headMaterial = new THREE.MeshStandardMaterial({ color: 0xc8ff4d });
+const bodyMaterial = new THREE.MeshStandardMaterial({ color: 0x33ff99 });
+
+function createSnakeMeshes() {
+  for (const mesh of snakeMeshes) {
+    scene.remove(mesh);
+  }
+
+  snakeMeshes = [];
+
+  for (let i = 0; i < snake.length; i++) {
+    const mesh = new THREE.Mesh(
+      cubeGeometry,
+      i === 0 ? headMaterial : bodyMaterial
+    );
+
+    scene.add(mesh);
+    snakeMeshes.push(mesh);
+  }
+
+  syncSnakeMeshes();
+}
+
+function syncSnakeMeshes() {
+  snake.forEach((part, index) => {
+    const mesh = snakeMeshes[index];
+    mesh.position.set(part.x, 0.45, part.z);
+  });
+}
+
+function moveSnake() {
+  const head = snake[0];
+
+  const newHead = {
+    x: head.x + direction.x,
+    z: head.z + direction.z
+  };
+
+  snake.unshift(newHead);
+  snake.pop();
+
+  syncSnakeMeshes();
+}
+
+window.addEventListener("keydown", event => {
+  const key = event.key.toLowerCase();
+
+  if (key === "arrowup" || key === "w") direction = { x: 0, z: -1 };
+  if (key === "arrowdown" || key === "s") direction = { x: 0, z: 1 };
+  if (key === "arrowleft" || key === "a") direction = { x: -1, z: 0 };
+  if (key === "arrowright" || key === "d") direction = { x: 1, z: 0 };
+});
+
+let lastMoveTime = 0;
+
+function animate(time) {
+  requestAnimationFrame(animate);
+
+  if (time - lastMoveTime > 250) {
+    moveSnake();
+    lastMoveTime = time;
+  }
+
+  renderer.render(scene, camera);
+}
+
+createSnakeMeshes();
+animate(0);
+</script>
+</body>
+</html>

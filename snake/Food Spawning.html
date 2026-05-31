@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Exercise 7 - Food Spawning</title>
+  <style>
+    body { margin: 0; overflow: hidden; background: #07111f; }
+  </style>
+</head>
+<body>
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.164.1/build/three.module.js"
+  }
+}
+</script>
+
+<script type="module">
+import * as THREE from "three";
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x07111f);
+
+const camera = new THREE.PerspectiveCamera(55, innerWidth / innerHeight, 0.1, 1000);
+camera.position.set(10, 12, 15);
+camera.lookAt(0, 0, 0);
+
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setSize(innerWidth, innerHeight);
+document.body.appendChild(renderer.domElement);
+
+scene.add(new THREE.AmbientLight(0xffffff, 0.8));
+
+const BOARD_SIZE = 15;
+const limit = Math.floor(BOARD_SIZE / 2);
+
+let snake = [
+  { x: 0, z: 0 },
+  { x: -1, z: 0 },
+  { x: -2, z: 0 }
+];
+
+let food = { x: 4, z: 4 };
+
+const snakeMaterial = new THREE.MeshStandardMaterial({ color: 0x33ff99 });
+const headMaterial = new THREE.MeshStandardMaterial({ color: 0xc8ff4d });
+const foodMaterial = new THREE.MeshStandardMaterial({ color: 0xff3d71 });
+
+const cubeGeometry = new THREE.BoxGeometry(0.85, 0.85, 0.85);
+const sphereGeometry = new THREE.SphereGeometry(0.42, 32, 32);
+
+const snakeMeshes = [];
+
+for (let i = 0; i < snake.length; i++) {
+  const mesh = new THREE.Mesh(cubeGeometry, i === 0 ? headMaterial : snakeMaterial);
+  scene.add(mesh);
+  snakeMeshes.push(mesh);
+}
+
+const foodMesh = new THREE.Mesh(sphereGeometry, foodMaterial);
+scene.add(foodMesh);
+
+function syncSnakeMeshes() {
+  snake.forEach((part, index) => {
+    snakeMeshes[index].position.set(part.x, 0.45, part.z);
+  });
+}
+
+function randomInt(min, max) {
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+function spawnFood() {
+  let newFood;
+
+  do {
+    newFood = {
+      x: randomInt(-limit, limit),
+      z: randomInt(-limit, limit)
+    };
+  } while (
+    snake.some(part => part.x === newFood.x && part.z === newFood.z)
+  );
+
+  food = newFood;
+  foodMesh.position.set(food.x, 0.5, food.z);
+}
+
+function animate(time) {
+  requestAnimationFrame(animate);
+
+  foodMesh.rotation.y += 0.04;
+  foodMesh.position.y = 0.5 + Math.sin(time * 0.005) * 0.15;
+
+  renderer.render(scene, camera);
+}
+
+syncSnakeMeshes();
+spawnFood();
+animate(0);
+</script>
+</body>
+</html>

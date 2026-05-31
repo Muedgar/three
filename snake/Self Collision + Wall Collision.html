@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Exercise 9 - Collision</title>
+  <style>
+    body { margin: 0; overflow: hidden; background: #07111f; }
+    #ui {
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      color: white;
+      font-family: Arial;
+      font-size: 22px;
+      font-weight: bold;
+    }
+    #message {
+      position: fixed;
+      inset: 0;
+      display: none;
+      place-items: center;
+      color: white;
+      font-family: Arial;
+      font-size: 40px;
+      background: rgba(0,0,0,0.65);
+    }
+    #message.show { display: grid; }
+  </style>
+</head>
+<body>
+<div id="ui">Score: 0</div>
+<div id="message">Game Over — Press R</div>
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.164.1/build/three.module.js"
+  }
+}
+</script>
+
+<script type="module">
+import * as THREE from "three";
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x07111f);
+
+const camera = new THREE.PerspectiveCamera(55, innerWidth / innerHeight, 0.1, 1000);
+camera.position.set(10, 12, 15);
+camera.lookAt(0, 0, 0);
+
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setSize(innerWidth, innerHeight);
+document.body.appendChild(renderer.domElement);
+
+scene.add(new THREE.AmbientLight(0xffffff, 0.8));
+
+const BOARD_SIZE = 15;
+const limit = Math.floor(BOARD_SIZE / 2);
+
+const board = new THREE.Mesh(
+  new THREE.BoxGeometry(BOARD_SIZE, 0.3, BOARD_SIZE),
+  new THREE.MeshStandardMaterial({ color: 0x12233a })
+);
+board.position.y = -0.2;
+scene.add(board);
+
+let snake;
+let direction;
+let nextDirection;
+let food;
+let score;
+let gameOver;
+let snakeMeshes = [];
+
+const ui = document.getElementById("ui");
+const message = document.getElementById("message");
+
+const cubeGeometry = new THREE.BoxGeometry(0.85, 0.85, 0.85);
+const foodGeometry = new THREE.SphereGeometry(0.42, 32, 32);
+
+const snakeMaterial = new THREE.MeshStandardMaterial({ color: 0x33ff99 });
+const headMaterial = new THREE.MeshStandardMaterial({ color: 0xc8ff4d });
+const foodMaterial = new THREE.MeshStandardMaterial({ color: 0xff3d71 });
+
+const foodMesh = new THREE.Mesh(foodGeometry, foodMaterial);
+scene.add(foodMesh);
+
+function restart() {
+  snake = [
+    { x: 0, z: 0 },
+    { x: -1, z: 0 },
+    { x: -2, z: 0 }
+  ];
+
+  direction = { x: 1, z: 0 };
+  nextDirection = { x: 1, z: 0 };
+  score = 0;
+  gameOver = false;
+  message.classList.remove("show");
+  ui.textContent = "Score: 0";
+
+  for (const mesh of snakeMeshes) scene.remove(mesh);
+  snakeMeshes = [];
+
+  spawnFood();
+  syncSnakeMeshes();
+}
+
+function syncSnakeMeshes() {
+  while (snakeMeshes.length < snake.length) {
+    const mesh = new THREE.Mesh(cubeGeometry, snakeMaterial);
+    scene.add(mesh);
+    snakeMeshes.push(mesh);
+  }
+
+  snake.forEach((part, index) => {
+    const mesh = snakeMeshes[index];
+    mesh.position.set(part.x, 0.45, part.z);
+    mesh.material = index === 0 ? headMaterial : snakeMaterial;
+  });
+}
+
+function moveSnake() {
+  if (gameOver) return;
+
+  direction = nextDirection;
+
+  const head = snake[0];
+
+  const newHead = {
+    x: head.x + direction.x,
+    z: head.z + direction.z
+  };
+
+  if (hitWall(newHead) || hitSelf(newHead)) {
+    gameOver = true;
+    message.classList.add("show");
+    return;
+  }
+
+  snake.unshift(newHead);
+
+  if (newHead.x === food.x && newHead.z === food.z) {
+    score++;
+    ui.textContent = `Score: ${score}`;
+    spawnFood();
+  } else {
+    snake.pop();
+  }
+
+  syncSnakeMeshes();
+}
+
+function hitWall(pos) {
+  return pos.x < -limit || pos.x > limit || pos.z < -limit || pos.z > limit;
+}
+
+function hitSelf(pos) {
+  return snake.some(part => part.x === pos.x && part.z === pos.z);
+}
+
+function spawnFood() {
+  let newFood;
+
+  do {
+    newFood = {
+      x: randomInt(-limit, limit),
+      z: randomInt(-limit, limit)
+    };
+  } while (snake.some(part => part.x === newFood.x && part.z === newFood.z));
+
+  food = newFood;
+  foodMesh.position.set(food.x, 0.5, food.z);
+}
+
+function randomInt(min, max) {
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+window.addEventListener("keydown", event => {
+  const key = event.key.toLowerCase();
+
+  if (key === "r") restart();
+
+  const requested = getDirectionFromKey(key);
+  if (!requested) return;
+
+  const isOpposite =
+    requested.x + direction.x === 0 &&
+    requested.z + direction.z === 0;
+
+  if (!isOpposite) {
+    nextDirection = requested;
+  }
+});
+
+function getDirectionFromKey(key) {
+  if (key === "arrowup" || key === "w") return { x: 0, z: -1 };
+  if (key === "arrowdown" || key === "s") return { x: 0, z: 1 };
+  if (key === "arrowleft" || key === "a") return { x: -1, z: 0 };
+  if (key === "arrowright" || key === "d") return { x: 1, z: 0 };
+  return null;
+}
+
+let lastMoveTime = 0;
+
+function animate(time) {
+  requestAnimationFrame(animate);
+
+  if (time - lastMoveTime > 160) {
+    moveSnake();
+    lastMoveTime = time;
+  }
+
+  foodMesh.rotation.y += 0.04;
+
+  renderer.render(scene, camera);
+}
+
+restart();
+animate(0);
+</script>
+</body>
+</html>
