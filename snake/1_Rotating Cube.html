@@ -19,11 +19,11 @@
 import * as THREE from "three";
 
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x07111f);
+scene.background = new THREE.Color("#49d4");
 
 const camera = new THREE.PerspectiveCamera(
   60,
-  window.innerWidth / window.innerHeight,
+  2,
   0.1,
   1000
 );
@@ -35,10 +35,14 @@ renderer.setSize(window.innerWidth, window.innerHeight);
 document.body.appendChild(renderer.domElement);
 
 const light = new THREE.DirectionalLight(0xffffff, 2);
-light.position.set(5, 5, 5);
-scene.add(light);
+light.position.set(0, 500, 1050);
 
-const geometry = new THREE.BoxGeometry(1, 1, 1);
+const lightTwo = new THREE.DirectionalLight(0xffffff, 2);
+lightTwo.position.set(0, -500, -100);
+scene.add(light);
+scene.add(lightTwo);
+
+const geometry = new THREE.BoxGeometry(1.2, 1, 2);
 const material = new THREE.MeshStandardMaterial({ color: 0x33ff99 });
 const cube = new THREE.Mesh(geometry, material);
 scene.add(cube);
