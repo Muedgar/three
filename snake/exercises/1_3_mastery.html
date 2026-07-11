@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background: #083;
+        }
+    </style>
+</head>
+<body>
+            <script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.164.1/build/three.module.js"
+  }
+}
+</script>
+<script type="module">
+    import * as THREE from "three";
+
+    const scene = new THREE.Scene();
+    
+    const camera = new THREE.PerspectiveCamera(
+        60,
+        window.innerWidth / window.innerHeight,
+        0.1,
+        1000
+    )
+
+    camera.position.set(7, 4.5, 8);
+    camera.lookAt(0, 0.4, 0);
+</script>
+</body>
+</html>
