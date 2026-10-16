@@ -8,7 +8,6 @@
         body {
             margin: 0;
             overflow: hidden;
-            background: #083;
         }
     </style>
 </head>
@@ -24,6 +23,7 @@
     import * as THREE from "three";
 
     const scene = new THREE.Scene();
+    scene.background = new THREE.Color("#092fad");
     
     const camera = new THREE.PerspectiveCamera(
         60,
@@ -34,6 +34,7 @@
 
     camera.position.set(7, 4.5, 8);
     camera.lookAt(0, 0.4, 0);
+    
 </script>
 </body>
 </html>

@@ -1,0 +1,9 @@
+<!doctype html><html><head><meta charset="UTF-8"><title>Bouncing Ball</title><style>body{margin:0;overflow:hidden}</style></head><body><script type="module">
+import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js';
+const scene=new THREE.Scene();scene.background=new THREE.Color(0x0b1020);const camera=new THREE.PerspectiveCamera(60,innerWidth/innerHeight,.1,100);camera.position.set(0,3,8);
+const renderer=new THREE.WebGLRenderer({antialias:true});renderer.setSize(innerWidth,innerHeight);document.body.appendChild(renderer.domElement);
+scene.add(new THREE.HemisphereLight(0xffffff,0x223344,3));const ball=new THREE.Mesh(new THREE.SphereGeometry(.6,32,32),new THREE.MeshStandardMaterial({color:0xfb7185,roughness:.35}));scene.add(ball);
+const floor=new THREE.Mesh(new THREE.PlaneGeometry(12,6),new THREE.MeshStandardMaterial({color:0x18243b}));floor.rotation.x=-Math.PI/2;floor.position.y=-2;scene.add(floor);
+let velocity=0,previous=performance.now();function animate(now){requestAnimationFrame(animate);const dt=Math.min((now-previous)/1000,.03);previous=now;velocity-=9.8*dt;ball.position.y+=velocity*dt;if(ball.position.y-.6<=-2){ball.position.y=-1.4;velocity=7.5}ball.rotation.x+=dt*3;renderer.render(scene,camera)}requestAnimationFrame(animate);
+addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight)});
+</script></body></html>
